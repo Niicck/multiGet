@@ -13,6 +13,7 @@ const getChunk = (uri, startRange, endRange) => {
   return request({
     uri,
     method: "GET",
+    encoding: null, // required in order to process binary data
     headers: {
       Range: `bytes=${startRange}-${endRange}`
     }
@@ -31,7 +32,10 @@ examples:
   node multiGet.js -o small-file http://31279842.bwtest-aws.pravala.com/384MB.jar
 **/
 const multiGet = () => {
-  // Initialize Variables
+
+  /******
+  Initialize Variables
+  ******/
   const uri = process.argv[process.argv.length - 1]
   let file, basename
 
@@ -53,7 +57,9 @@ const multiGet = () => {
   let totalSize = 4000000
   let chunkCount = 4
 
-  // Check for existence of file on host machine
+  /******
+  Check for existence of file on host machine
+  ******/
   return fse.pathExists(outputFilename)
   .then((exists)=>{
     if (exists) {
@@ -63,7 +69,9 @@ const multiGet = () => {
     }
   })
   .then(() => {
-    // Send HEAD request to determine length of target file
+    /******
+    Send HEAD request to determine length of target file
+    ******/
     return request({
       uri,
       method: "HEAD"
@@ -77,7 +85,9 @@ const multiGet = () => {
     return
   })
   .then(() => {
-    // Build Progress Bar
+    /******
+    Build Progress Bar
+    ******/
     console.log(`Downloading first ${chunkCount} chunks of '${uri}' to '${basename}'`)
     const bar = new ProgressBar(':bar:doneFlag', {
       complete: '.',
@@ -86,24 +96,34 @@ const multiGet = () => {
     });
 
     if (!parallel) {
-      // Retrieve file in chunks serially
+      /******
+      Retrieve file in chunks serially
+      ******/
       return Promise.mapSeries(_.range(chunkCount), (i) => {
         const startRange = i * chunkSize
         const endRange = (i + 1) * chunkSize - 1
-        return getChunk(uri, startRange, endRange)
+        return request({
+          uri,
+          method: "GET",
+          encoding: null, // required in order to process binary data
+          headers: {
+            Range: `bytes=${startRange}-${endRange}`
+          }
+        })
         .then((chunk) => {
           file.write(chunk)
           bar.tick({
             doneFlag: (i === chunkCount-1 ? "done" : "")
           })
-          return Promise.resolve()
         })
       })
       .then(() => {
         file.end()
       })
     } else {
-      // TODO: Retrieve file in chunks in parallel
+      /******
+      TODO: Retrieve file in chunks in parallel
+      ******/
       return Promise.resolve()
     }
 
