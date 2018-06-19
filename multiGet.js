@@ -27,55 +27,29 @@ Flags:
       Specify the total download size. Default is 4MB
 
 examples:
-  node multiGet.js http://31279842.bwtest-aws.pravala.com/384MB.jar
-  node multiGet.js -o my_file http://31279842.bwtest-aws.pravala.com/384MB.jar
-  node multiGet.js -o my_file2 -chunk-size 512638 http://31279842.bwtest-aws.pravala.com/384MB.jar
-  node multiGet.js -o my_file3 -chunk-count 5 http://31279842.bwtest-aws.pravala.com/384MB.jar
-  node multiGet.js -o my_file4 -chunk-size 712638 -total-size 5000000 -parallel http://31279842.bwtest-aws.pravala.com/384MB.jar
+  node index.js http://31279842.bwtest-aws.pravala.com/384MB.jar
+  node index.js -o my_file http://31279842.bwtest-aws.pravala.com/384MB.jar
+  node index.js -o my_file2 -chunk-size 512638 http://31279842.bwtest-aws.pravala.com/384MB.jar
+  node index.js -o my_file3 -chunk-count 5 http://31279842.bwtest-aws.pravala.com/384MB.jar
+  node index.js -o my_file4 -chunk-size 712638 -total-size 5000000 -parallel http://31279842.bwtest-aws.pravala.com/384MB.jar
 **/
-const multiGet = () => {
+const multiGet = (uri, outputFilename, parallel, chunkCount, chunkSize, totalDownloadSize) => {
 
   /******************************
   Initialize Variables
   ******************************/
-
-  const uri = process.argv[process.argv.length - 1]
   let file
-  let basename = path.basename(uri)
-  let chunkCount = 4
-  let chunkSize = 1000000
-  let totalDownloadSize = 4000000
   let chunksComplete = 0
+  outputFilename = outputFilename || path.basename(uri)
+  const outputFilepath = __dirname + '/' + outputFilename
 
-  // Handle -o flag
-  const outputFlagIndex = _.indexOf(process.argv, "-o")
-  if (outputFlagIndex != -1) {
-    basename = process.argv[outputFlagIndex + 1]
-  }
-  const outputFilename = __dirname + '/' + basename
-
-  // Handle -parallel flag
-  const parallel = (_.indexOf(process.argv, "-parallel") != -1)
-
-  // Handle -total-size flag
-  const totalSizeFlagIndex = _.indexOf(process.argv, "-total-size")
-  if (totalSizeFlagIndex != -1) {
-    totalDownloadSize = Number(process.argv[totalSizeFlagIndex + 1])
-  }
-
-  // Handle -chunk-count and -chunk-size flags
-  const chunkCountFlagIndex = _.indexOf(process.argv, "-chunk-count")
-  if (chunkCountFlagIndex != -1) {
-    chunkCount = Number(process.argv[chunkCountFlagIndex + 1])
+  totalDownloadSize = totalDownloadSize || 4000000
+  if (chunkCount) {
     chunkSize = Math.ceil(totalDownloadSize / chunkCount)
+  } else if (chunkSize) {
+    chunkCount = Math.ceil(totalDownloadSize / chunkSize)
   } else {
-    const chunkSizeFlagIndex = _.indexOf(process.argv, "-chunk-size")
-    if (chunkSizeFlagIndex != -1) {
-      chunkSize = Number(process.argv[chunkSizeFlagIndex + 1])
-      chunkCount = Math.ceil(totalDownloadSize / chunkSize)
-    }
-  }
-  if (chunkSize > totalDownloadSize) {
+    chunkCount = 4
     chunkSize = Math.ceil(totalDownloadSize / chunkCount)
   }
 
@@ -119,12 +93,12 @@ const multiGet = () => {
   /******
   Check for existence of file on host machine
   ******/
-  return fse.pathExists(outputFilename)
+  return fse.pathExists(outputFilepath)
   .then((exists)=>{
     if (exists) {
-      return Promise.reject({message: `File ${basename} exists`})
+      return Promise.reject({message: `File ${outputFilename} exists`})
     } else {
-      file = fs.createWriteStream(outputFilename)
+      file = fs.createWriteStream(outputFilepath)
     }
   })
   .then(() => {
@@ -148,7 +122,7 @@ const multiGet = () => {
     /******
     Build Progress Bar
     ******/
-    console.log(`Downloading first ${chunkCount} chunks of '${uri}' to '${basename}'`)
+    console.log(`Downloading first ${chunkCount} chunks of '${uri}' to '${outputFilename}'`)
     const bar = new ProgressBar(':bar:doneFlag', {
       complete: '.',
       incomplete: ' ',
