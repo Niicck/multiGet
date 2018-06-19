@@ -1,19 +1,12 @@
 'use strict'
-
-// const Promise = require('bluebird')
-//
-// const derp = () => {
-//   let file = 55
-//   return Promise.resolve()
-//   .then(()=>file)
-//   .then((f)=>{
-//     console.log(`file is ${f}`)
-//   })
-// }
-//
-// derp()
+const ProgressBar = require('progress');
 
 
-const path = require('path')
-const filename = path.basename('http://31279842.bwtest-aws.pravala.com/38434125MB.jar')
-console.log(filename)
+var bar = new ProgressBar(':bar', { total: 10 });
+var timer = setInterval(function () {
+  bar.tick();
+  if (bar.complete) {
+    console.log('\ncomplete\n');
+    clearInterval(timer);
+  }
+}, 100);
