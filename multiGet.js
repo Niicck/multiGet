@@ -8,12 +8,6 @@ const fse = require('fs-extra')
 const path = require('path')
 const ProgressBar = require('progress');
 
-const lengthLowerBound = 4000000
-let chunkSize = 1000000
-let totalSize = 4000000
-let chunkCount = 4
-let parallel = false
-
 // Function to retrieve range of bytes from target file
 const getChunk = (uri, startRange, endRange) => {
   return request({
@@ -25,18 +19,47 @@ const getChunk = (uri, startRange, endRange) => {
   })
 }
 
-const test = (uri) => {
-  let file
-  const basename = path.basename(uri)
-  const filename = __dirname + '/' + basename
+/**
+Usage: node ./multiGet.js [OPTIONS] url
+  -o string
+    	Write output to <file> instead of default
+  -parallel
+    	Download chunks in parallel instead of sequentally
+
+examples:
+  node multiGet.js http://31279842.bwtest-aws.pravala.com/384MB.jar
+  node multiGet.js -o small-file http://31279842.bwtest-aws.pravala.com/384MB.jar
+**/
+const multiGet = () => {
+  // Initialize Variables
+  const uri = process.argv[process.argv.length - 1]
+  let file, basename
+
+  // Handle -o flag
+  const outputFlagIndex = _.indexOf(process.argv, "-o")
+  if (outputFlagIndex != -1) {
+    basename = process.argv[outputFlagIndex + 1]
+  } else {
+    basename = path.basename(uri)
+  }
+  const outputFilename = __dirname + '/' + basename
+
+  // Handle -parallel flag
+  const parallel = (_.indexOf(process.argv, "-parallel") != -1)
+
+  // TODO: make flags to alter these defaults
+  const lengthLowerBound = 4000000
+  let chunkSize = 1000000
+  let totalSize = 4000000
+  let chunkCount = 4
 
   // Check for existence of file on host machine
-  return fse.pathExists(filename)
+  return fse.pathExists(outputFilename)
   .then((exists)=>{
     if (exists) {
       return Promise.reject({message: `File ${basename} exists`})
     } else {
-      file = fs.createWriteStream(filename)
+      file = fs.createWriteStream(outputFilename)
     }
   })
   .then(() => {
@@ -90,5 +113,4 @@ const test = (uri) => {
   })
 }
 
-const testUrl = 'http://31279842.bwtest-aws.pravala.com/384MB.jar'
-test(testUrl)
+multiGet()
