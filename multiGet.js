@@ -41,7 +41,7 @@ const multiGet = (uri, outputFilename, parallel, chunkCount, chunkSize, totalDow
   let file
   let chunksComplete = 0
   outputFilename = outputFilename || path.basename(uri)
-  const outputFilepath = __dirname + '/' + outputFilename
+  const outputFilepath = './' + outputFilename
 
   totalDownloadSize = totalDownloadSize || 4000000
   if (chunkCount) {
@@ -146,9 +146,11 @@ const multiGet = (uri, outputFilename, parallel, chunkCount, chunkSize, totalDow
         return getChunk(chunkSize, chunkNumber, totalDownloadSize, bar)
       }, {concurrency: 2}) // Could change concurrency value
       .then((chunks) => {
-        return _.each(chunks, (chunk) => file.write(chunk))
+        _.each(chunks, (chunk) => {
+          file.write(chunk)
+        })
+        file.end()
       })
-      .then(() => file.end())
     }
   })
   .catch((err) => {

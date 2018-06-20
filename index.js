@@ -45,7 +45,6 @@ if (outputFlagIndex != -1) {
 // Handle -parallel flag
 const parallel = (_.indexOf(process.argv, "-parallel") != -1)
 
-
 // Handle -chunk-count flag
 const chunkCountFlagIndex = _.indexOf(process.argv, "-chunk-count")
 if (chunkCountFlagIndex != -1) {
