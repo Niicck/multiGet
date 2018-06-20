@@ -1,4 +1,4 @@
-##multiGet
+## multiGet
 
 Downloads part of a file from a web server, in chunks.<br>
 Defaults to 4 chunks of 1MB each.<br>
