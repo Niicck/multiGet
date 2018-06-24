@@ -1,7 +1,7 @@
 ## multiGet
 
-Downloads part of a file from a web server, in chunks.<br>
-Defaults to 4 chunks of 1MB each.<br>
+Downloads portion of a file from a web server, in chunks.<br>
+Defaults to downloading first 4 MB of file, in 4 chunks of 1MB each.<br>
 
 **Installation**<br>
 run `npm install` to install all required npm packages.<br>
